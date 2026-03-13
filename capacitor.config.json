@@ -1,0 +1,11 @@
+{
+  "appId": "com.boardarena.app",
+  "appName": "Board Arena",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "plugins": {
+    "AdMob": {
+      "appId": "ca-app-pub-3986271358251076~4345351648"
+    }
+  }
+}
