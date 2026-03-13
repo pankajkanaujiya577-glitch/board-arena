@@ -898,13 +898,13 @@ html,body{
     </div>
     <div class="cat-tabs" id="catTabs">
       <div class="cat-tab on" data-c="all" onclick="setCat('all',this)">🎮 All</div>
-      <div class="cat-tab" data-c="board" onclick="setCat('board',this)">♟ Board</div>
+      <div class="cat-tab" data-c="board" onclick="setCat('board',this)">&#9823; Board</div>
       <div class="cat-tab" data-c="arcade" onclick="setCat('arcade',this)">🕹 Arcade</div>
       <div class="cat-tab" data-c="puzzle" onclick="setCat('puzzle',this)">🧩 Puzzle</div>
       <div class="cat-tab" data-c="word" onclick="setCat('word',this)">📝 Word</div>
       <div class="cat-tab" data-c="sports" onclick="setCat('sports',this)">🏆 Sports</div>
       <div class="cat-tab" data-c="card" onclick="setCat('card',this)">🃏 Cards</div>
-      <div class="cat-tab" data-c="casual" onclick="setCat('casual',this)">🎲 Casual</div>
+      <div class="cat-tab" data-c="casual" onclick="setCat('casual',this)">&#9861; Casual</div>
     </div>
     <div class="game-count" id="gameCount">77 GAMES</div>
     <div class="games-wrap" id="gamesWrap"></div>
@@ -1325,20 +1325,20 @@ html,body{
 // ═══════════════════════════════════════════════════════
 var GAMES = [
   // Board
-  {id:'chess',name:'Chess',cat:'board',emoji:'♟',new:false},
+  {id:'chess',name:'Chess',cat:'board',emoji:'&#9823;',new:false},
   {id:'ttt',name:'Tic-Tac-Toe',cat:'board',emoji:'⭕',new:false},
-  {id:'c4',name:'Connect 4',cat:'board',emoji:'🔴',new:false},
-  {id:'checkers',name:'Checkers',cat:'board',emoji:'🔵',new:false},
-  {id:'reversi',name:'Othello',cat:'board',emoji:'⚫',new:false},
+  {id:'c4',name:'Connect 4',cat:'board',emoji:'<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#ef4444;vertical-align:middle"></span>',new:false},
+  {id:'checkers',name:'Checkers',cat:'board',emoji:'<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#3b82f6;vertical-align:middle"></span>',new:false},
+  {id:'reversi',name:'Othello',cat:'board',emoji:'&#9679;',new:false},
   {id:'dots',name:'Dots & Boxes',cat:'board',emoji:'📦',new:false},
   {id:'battleship',name:'Battleship',cat:'board',emoji:'🚢',new:false},
-  {id:'gomoku',name:'Gomoku',cat:'board',emoji:'⚪',new:false},
-  {id:'go',name:'Go',cat:'board',emoji:'🟡',new:false},
-  {id:'backgammon',name:'Backgammon',cat:'board',emoji:'🎲',new:false},
+  {id:'gomoku',name:'Gomoku',cat:'board',emoji:'&#9675;',new:false},
+  {id:'go',name:'Go',cat:'board',emoji:'&#11044;',new:false},
+  {id:'backgammon',name:'Backgammon',cat:'board',emoji:'<svg width="20" height="20" viewBox="0 0 100 100"><rect x="4" y="4" width="92" height="92" rx="16" fill="#fff" stroke="#ccc" stroke-width="4"/><circle cx="50" cy="50" r="9" fill="#1a2e46"/></svg>',new:false},
   {id:'stratego',name:'Stratego',cat:'board',emoji:'🏴',new:false},
   {id:'ludo',name:'Ludo',cat:'board',emoji:'🎯',new:false},
   {id:'chinesecheckers',name:'Chinese Checkers',cat:'board',emoji:'⭐',new:true},
-  {id:'yahtzee',name:'Yahtzee',cat:'board',emoji:'🎲',new:true},
+  {id:'yahtzee',name:'Yahtzee',cat:'board',emoji:'<svg width="20" height="20" viewBox="0 0 100 100"><rect x="4" y="4" width="92" height="92" rx="16" fill="#fff" stroke="#ccc" stroke-width="4"/><circle cx="50" cy="50" r="9" fill="#1a2e46"/></svg>',new:true},
   {id:'mastermind',name:'Mastermind',cat:'board',emoji:'🔐',new:true},
   {id:'quoridor',name:'Quoridor',cat:'board',emoji:'🧱',new:true},
   // Arcade
@@ -1368,7 +1368,7 @@ var GAMES = [
   {id:'memory',name:'Memory Match',cat:'puzzle',emoji:'🃏',new:false},
   {id:'simon',name:'Simon Says',cat:'puzzle',emoji:'🟢',new:false},
   {id:'g2048',name:'2048',cat:'puzzle',emoji:'🔢',new:false},
-  {id:'minesweeper',name:'Minesweeper',cat:'puzzle',emoji:'💣',new:false},
+  {id:'minesweeper',name:'Minesweeper',cat:'puzzle',emoji:'&#128163;',new:false},
   {id:'sokoban',name:'Sokoban',cat:'puzzle',emoji:'📦',new:false},
   {id:'sudoku',name:'Sudoku',cat:'puzzle',emoji:'🔢',new:true},
   {id:'nonogram',name:'Nonogram',cat:'puzzle',emoji:'📊',new:true},
@@ -1411,7 +1411,7 @@ var GAMES = [
 ];
 
 var CAT_META = {
-  board:  {label:'♟ Board',color:'#3b82f6'},
+  board:  {label:'&#9823; Board',color:'#3b82f6'},
   arcade: {label:'🕹 Arcade',color:'#f97316'},
   puzzle: {label:'🧩 Puzzle',color:'#a78bfa'},
   word:   {label:'📝 Word',color:'#10b981'},
@@ -1605,7 +1605,7 @@ var CARD_ART = {
     +[0,1,2,3,4,5,6,7].map(function(r){return[0,1,2,3,4,5,6,7].map(function(c){return (r+c)%2===0?'<rect x="'+(c*18+4)+'" y="'+(r*12+4)+'" width="18" height="12" fill="'+(r%2===0&&c%2===0?'#e8d5b7':'#b58863')+'"/>':''}).join('');}).join('')
     +'</g>'
     // Knight piece
-    +'<text x="68" y="72" font-size="38" text-anchor="middle" style="animation:float-up 2.5s ease-in-out infinite;display:inline-block">♞</text>'
+    +'<text x="68" y="72" font-size="38" text-anchor="middle" style="animation:float-up 2.5s ease-in-out infinite;display:inline-block">N</text>'
     +'</svg>';
   },
   ttt: function(c){
@@ -1913,7 +1913,7 @@ var CARD_ART = {
     +'</svg>';
   },
   minesweeper: function(c){
-    var cells=[['💣','#ef4444'],['','#d1d5db'],['2','#3b82f6'],['','#d1d5db'],['💣','#ef4444'],['3','#10b981'],['','#d1d5db'],['💣','#ef4444'],['1','#3b82f6'],['','#d1d5db'],['','#9ca3af'],['2','#3b82f6'],['','#d1d5db'],['💣','#ef4444'],['1','#3b82f6'],['','#d1d5db']];
+    var cells=[['&#128163;','#ef4444'],['','#d1d5db'],['2','#3b82f6'],['','#d1d5db'],['&#128163;','#ef4444'],['3','#10b981'],['','#d1d5db'],['&#128163;','#ef4444'],['1','#3b82f6'],['','#d1d5db'],['','#9ca3af'],['2','#3b82f6'],['','#d1d5db'],['&#128163;','#ef4444'],['1','#3b82f6'],['','#d1d5db']];
     return '<svg width="100%" height="100%" viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg">'
     +'<rect width="160" height="120" fill="#374151"/>'
     +'<rect x="5" y="5" width="150" height="110" rx="4" fill="#9ca3af"/>'
@@ -2192,16 +2192,16 @@ var CARD_ART = {
 
   // ── CARD ───────────────────────────────────────────
   blackjack: function(c){
-    function card(x,y,suit,val,rot){return'<g transform="rotate('+rot+','+x+','+y+')" style="animation:float-up 2s ease-in-out '+(x*.01)+'s infinite"><rect x="'+(x-15)+'" y="'+(y-20)+'" width="30" height="40" rx="4" fill="white" stroke="#e2e8f0" stroke-width="1"/><text x="'+x+'" y="'+(y-8)+'" font-size="10" text-anchor="middle" fill="'+(suit==='♠'||suit==='♣'?'#1c1917':'#ef4444')+'" font-weight="bold">'+val+'</text><text x="'+x+'" y="'+(y+5)+'" font-size="16" text-anchor="middle" fill="'+(suit==='♠'||suit==='♣'?'#1c1917':'#ef4444')+'">'+suit+'</text></g>';}
+    function card(x,y,suit,val,rot){return'<g transform="rotate('+rot+','+x+','+y+')" style="animation:float-up 2s ease-in-out '+(x*.01)+'s infinite"><rect x="'+(x-15)+'" y="'+(y-20)+'" width="30" height="40" rx="4" fill="white" stroke="#e2e8f0" stroke-width="1"/><text x="'+x+'" y="'+(y-8)+'" font-size="10" text-anchor="middle" fill="'+(suit==='<span style="color:#1a2e46">&#9824;</span>'||suit==='<span style="color:#1a2e46">&#9827;</span>'?'#1c1917':'#ef4444')+'" font-weight="bold">'+val+'</text><text x="'+x+'" y="'+(y+5)+'" font-size="16" text-anchor="middle" fill="'+(suit==='<span style="color:#1a2e46">&#9824;</span>'||suit==='<span style="color:#1a2e46">&#9827;</span>'?'#1c1917':'#ef4444')+'">'+suit+'</text></g>';}
     return '<svg width="100%" height="100%" viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg">'
     +'<rect width="160" height="120" fill="#14532d"/>'
     +'<rect x="10" y="10" width="140" height="100" rx="8" fill="#166534" stroke="#15803d" stroke-width="2"/>'
-    +card(45,60,'♠','A','-10')+card(80,55,'♥','K','5')+card(115,60,'♣','J','-5')
+    +card(45,60,'<span style="color:#1a2e46">&#9824;</span>','A','-10')+card(80,55,'<span style="color:#e63946">&#9829;</span>','K','5')+card(115,60,'<span style="color:#1a2e46">&#9827;</span>','J','-5')
     +'<text x="80" y="108" font-size="9" text-anchor="middle" fill="#fbbf24" font-weight="bold" letter-spacing="1">BLACKJACK</text>'
     +'</svg>';
   },
   solitaire: function(c){
-    var suits=['♠','♥','♦','♣'];
+    var suits=['<span style="color:#1a2e46">&#9824;</span>','<span style="color:#e63946">&#9829;</span>','<span style="color:#e63946">&#9830;</span>','<span style="color:#1a2e46">&#9827;</span>'];
     return '<svg width="100%" height="100%" viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg">'
     +'<rect width="160" height="120" fill="#166534"/>'
     +suits.map(function(s,i){return'<rect x="'+(10+i*35)+'" y="10" width="28" height="36" rx="4" fill="'+(i%2?'rgba(59,130,246,.2)':'rgba(255,255,255,.1)')+'" stroke="rgba(255,255,255,.2)" stroke-width="1"/><text x="'+(24+i*35)+'" y="34" font-size="18" text-anchor="middle" fill="'+(i%2?'#60a5fa':'rgba(255,255,255,.4)')+'">'+s+'</text>';}).join('')
@@ -2630,7 +2630,7 @@ function c4Game() {
       cells+='<div class="c4-cell" style="background:'+bg+';box-shadow:'+sh+'"></div>';
     }
     el.innerHTML='<div class="board-game">'
-      +'<div class="board-info"><span>You: 🟣</span><span>'+(over?'Game Over':'CPU: 🟡')+'</span></div>'
+      +'<div class="board-info"><span>You: <span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:#7c3aed;vertical-align:middle;box-shadow:0 0 6px #7c3aed"></span></span><span>'+(over?'Game Over':'CPU: <span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:#f59e0b;vertical-align:middle;box-shadow:0 0 6px #f59e0b"></span>')+'</span></div>'
       +'<div style="display:flex;width:min(310px,90vw);margin-bottom:2px">'+colBtns+'</div>'
       +'<div class="c4-grid" style="width:min(310px,90vw)">'+cells+'</div>'
       +'<button class="btn btn-ghost" onclick="c4Game()" style="width:140px;margin-top:8px">🔄 Restart</button>'
@@ -2856,7 +2856,7 @@ function minesweeperGame() {
       var rv=revealed[r][c],fl=flagged[r][c];
       var rr=r,cc=c;
       var bg=rv?(board[r][c]===-1?'rgba(239,68,68,.4)':'rgba(255,255,255,.04)'):'rgba(255,255,255,.08)';
-      var content=rv?(board[r][c]===-1?'💣':(board[r][c]>0?'<span style="color:'+NCOLORS[board[r][c]]+'">'+board[r][c]+'</span>':'')):(fl?'🚩':'');
+      var content=rv?(board[r][c]===-1?'<svg width="18" height="18" viewBox="0 0 16 16"><circle cx="8" cy="9" r="5" fill="#222" stroke="#666" stroke-width="1"/><rect x="7" y="3" width="2" height="3" fill="#666"/><circle cx="6" cy="7" r="1.2" fill="#fff" opacity=".5"/></svg>':(board[r][c]>0?'<span style="color:'+NCOLORS[board[r][c]]+'">'+board[r][c]+'</span>':'')):(fl?'<svg width="18" height="18" viewBox="0 0 16 16"><rect x="4" y="2" width="1.5" height="12" fill="#888"/><polygon points="5.5,2 13,5.5 5.5,9" fill="#ef4444"/></svg>':'');
       cells+='<div class="ms-cell'+(rv?' rev':'')+(rv&&board[r][c]===-1?' mine':'')+'" '
         +'onclick="msClick('+r+','+c+')" '
         +'oncontextmenu="msFlag(event,'+r+','+c+')" '
@@ -2867,7 +2867,7 @@ function minesweeperGame() {
     }
     var el=document.getElementById('gameBody');
     el.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;padding:10px;gap:8px;flex:1">'
-      +'<div style="display:flex;gap:16px;font-size:12px;color:var(--text3)"><span>💣 '+MINES+'</span><span>🚩 Flags</span><span>Tap=reveal, Long=flag</span></div>'
+      +'<div style="display:flex;gap:16px;font-size:12px;color:var(--text3)"><span><svg width="13" height="13" viewBox="0 0 16 16"><circle cx="8" cy="9" r="5" fill="#222" stroke="#666" stroke-width="1"/><rect x="7" y="3" width="2" height="3" fill="#666"/></svg> '+MINES+'</span><span><svg width="13" height="13" viewBox="0 0 16 16"><rect x="4" y="2" width="1.5" height="12" fill="#888"/><polygon points="5.5,2 13,5.5 5.5,9" fill="#ef4444"/></svg> Flags</span><span>Tap=reveal, Long=flag</span></div>'
       +'<div class="ms-grid" style="grid-template-columns:repeat('+COLS+',32px)">'+cells+'</div>'
       +'<button class="btn btn-ghost" onclick="minesweeperGame()" style="width:140px">🔄 New Game</button>'
       +'</div>';
@@ -2880,7 +2880,7 @@ function minesweeperGame() {
     if(over||revealed[r][c]||flagged[r][c])return;
     if(!started){started=true;placeMines(r,c);}
     reveal(r,c);
-    if(board[r][c]===-1){over=true;for(var rr=0;rr<ROWS;rr++)for(var cc=0;cc<COLS;cc++)if(board[rr][cc]===-1)revealed[rr][cc]=true;render();gameLose();toast('💣 Boom! Game Over!');return;}
+    if(board[r][c]===-1){over=true;for(var rr=0;rr<ROWS;rr++)for(var cc=0;cc<COLS;cc++)if(board[rr][cc]===-1)revealed[rr][cc]=true;render();gameLose();toast('BOOM! Game Over!');return;}
     if(checkWin()){over=true;render();gameWin(30);toast('🏆 Clear! You Win!');return;}
     render();
   };
@@ -3118,13 +3118,29 @@ function rpsGame() {
 }
 
 // ─── BLACKJACK ─────────────────────────────────────────
+
+// ── Card suit SVG helpers ─────────────────────────────
+function suitSvg(suit, size) {
+  size = size || 14;
+  var map = {
+    '<span style="color:#e63946">&#9829;</span>': {path:'M8,14 C8,14 2,10 2,5.5 A3,3 0 0 1 8,4 A3,3 0 0 1 14,5.5 C14,10 8,14 8,14Z', color:'#e63946'},
+    '<span style="color:#e63946">&#9830;</span>': {path:'M8,2 L14,8 L8,14 L2,8 Z', color:'#e63946'},
+    '<span style="color:#1a2e46">&#9827;</span>': {path:'M8,13 L6,13 L6,11 C4.3,11 3,9.7 3,8 C3,6.3 4.3,5 6,5 C6,3.3 7.3,2 9,2 C10.7,2 12,3.3 12,5 C13.7,5 15,6.3 15,8 C15,9.7 13.7,11 12,11 L12,13 L10,13 Z', color:'#1a2e46'},
+    '<span style="color:#1a2e46">&#9824;</span>': {path:'M8,2 L14,10 L10,10 L10,13 L6,13 L6,10 L2,10 Z', color:'#1a2e46'},
+  };
+  var s = map[suit];
+  if(!s) return suit;
+  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 16 16" style="display:inline-block;vertical-align:middle">'
+    +'<path d="'+s.path+'" fill="'+s.color+'"/>'
+    +'</svg>';
+}
 function blackjackGame() {
-  var SUITS=['♠','♥','♦','♣'],VALS=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+  var SUITS=['<span style="color:#1a2e46">&#9824;</span>','<span style="color:#e63946">&#9829;</span>','<span style="color:#e63946">&#9830;</span>','<span style="color:#1a2e46">&#9827;</span>'],VALS=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
   var deck=[],player=[],dealer=[],over=false,bet=10;
   function newDeck(){deck=[];SUITS.forEach(function(s){VALS.forEach(function(v){deck.push({s:s,v:v});});});for(var i=deck.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=deck[i];deck[i]=deck[j];deck[j]=t;}}
   function draw(){return deck.pop();}
   function val(hand){var t=0,aces=0;hand.forEach(function(c){if(c.v==='A'){aces++;t+=11;}else if(['J','Q','K'].indexOf(c.v)>=0)t+=10;else t+=parseInt(c.v);});while(t>21&&aces>0){t-=10;aces--;}return t;}
-  function cardHTML(c,hidden){if(hidden)return '<div class="playing-card back">🂠</div>';var red=['♥','♦'].indexOf(c.s)>=0;return '<div class="playing-card'+(red?' red':'')+'">'+c.v+c.s+'</div>';}
+  function cardHTML(c,hidden){if(hidden)return '<div class="playing-card back">🂠</div>';var red=['<span style="color:#e63946">&#9829;</span>','<span style="color:#e63946">&#9830;</span>'].indexOf(c.s)>=0;return '<div class="playing-card'+(red?' red':'')+'">'+c.v+c.s+'</div>';}
   function render(hideDealer){
     var pv=val(player),dv=val(hideDealer?dealer.slice(0,1):dealer);
     var pc=player.map(function(c){return cardHTML(c,false);}).join('');
@@ -4367,13 +4383,16 @@ function chessGame() {
       var p = board[r][c];
       if (p) {
         var key = p.color + p.type;
-        ctx.fillStyle = p.color==='w' ? '#fff' : '#1a1a1a';
-        ctx.strokeStyle = p.color==='w' ? '#555' : '#fff';
-        ctx.lineWidth = 0.5;
-        ctx.font = 'bold ' + Math.round(SZ*.72) + 'px serif';
+        ctx.font = 'bold ' + Math.round(SZ*.75) + 'px serif';
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.strokeText(PIECES[key], c*SZ+SZ/2, r*SZ+SZ/2+1);
-        ctx.fillText(PIECES[key], c*SZ+SZ/2, r*SZ+SZ/2+1);
+        var cx = c*SZ+SZ/2, cy = r*SZ+SZ/2+1;
+        // Draw thick shadow/outline for contrast on any background
+        ctx.lineWidth = Math.max(2, SZ*.08);
+        ctx.strokeStyle = p.color==='w' ? '#2d1b00' : '#fff';
+        ctx.strokeText(PIECES[key], cx, cy);
+        // Fill with piece color
+        ctx.fillStyle = p.color==='w' ? '#fff8dc' : '#1a0a00';
+        ctx.fillText(PIECES[key], cx, cy);
       }
     }
   }
@@ -4711,6 +4730,30 @@ function battleshipGame() {
 }
 
 // ─── YAHTZEE ──────────────────────────────────────────
+
+// ── SVG Dice renderer ─────────────────────────────────
+function svgDie(n, size, selected) {
+  size = size || 44;
+  var bg = selected ? '#4a9eff' : '#fff';
+  var dot = selected ? '#fff' : '#1a2e46';
+  var border = selected ? '#1a6fd4' : '#d1d5db';
+  var dots = {
+    1: [[50,50]],
+    2: [[25,25],[75,75]],
+    3: [[25,25],[50,50],[75,75]],
+    4: [[25,25],[75,25],[25,75],[75,75]],
+    5: [[25,25],[75,25],[50,50],[25,75],[75,75]],
+    6: [[25,22],[75,22],[25,50],[75,50],[25,78],[75,78]]
+  };
+  var dps = dots[n] || [];
+  var dotsSvg = dps.map(function(d) {
+    return '<circle cx="'+d[0]+'" cy="'+d[1]+'" r="9" fill="'+dot+'"/>';
+  }).join('');
+  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 100 100" style="cursor:pointer;flex-shrink:0">'
+    +'<rect x="4" y="4" width="92" height="92" rx="16" ry="16" fill="'+bg+'" stroke="'+border+'" stroke-width="4"/>'
+    +dotsSvg
+    +'</svg>';
+}
 function yahtzeeGame() {
   var el = document.getElementById('gameBody');
   var dice = [1,1,1,1,1], held = [false,false,false,false,false];
@@ -4756,7 +4799,7 @@ function yahtzeeGame() {
   }
 
   function render(){
-    var FACES=['','⚀','⚁','⚂','⚃','⚄','⚅'];
+    // FACES replaced by svgDie() function
     var diceHTML=dice.map(function(d,i){
       return '<div onclick="yhHold('+i+')" style="width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:28px;cursor:pointer;'
         +'background:'+(held[i]?'rgba(245,158,11,.2)':'rgba(255,255,255,.08)')+';'
@@ -4852,7 +4895,7 @@ function mastermindGame() {
     el.innerHTML='<div style="display:flex;flex-direction:column;padding:10px;gap:8px;flex:1;overflow-y:auto">'
       +'<div style="display:flex;justify-content:space-between;font-size:12px">'
       +'<span style="color:var(--text3)">Guess '+( history.length+1)+'/'+maxGuesses+'</span>'
-      +'<span style="color:var(--text3)">⚫=right spot  ⚪=wrong spot</span>'
+      +'<span style="color:var(--text3)"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#222;border:1px solid #555;vertical-align:middle"></span>=right spot &nbsp;<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#fff;border:1px solid #aaa;vertical-align:middle"></span>=wrong spot</span>'
       +'</div>'
       +currentRow
       +'<div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;padding:4px 0;border-top:1px solid rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.08)">'+colorPicker+'</div>'
@@ -4963,7 +5006,7 @@ function ludoGame() {
       }).join('');
     };
 
-    var diceface=['','⚀','⚁','⚂','⚃','⚄','⚅'][dice]||'?';
+    var diceface=svgDie(dice,44,keptDice.indexOf(i)>=0);
     el.innerHTML='<div style="display:flex;flex-direction:column;padding:12px;gap:10px;flex:1;overflow-y:auto">'
       +'<div style="display:flex;justify-content:space-between;align-items:center">'
       +'<span style="font-size:13px;font-weight:700;color:'+(turn===0?'#ef4444':'#3b82f6')+'">'+(turn===0?'Your Turn':'CPU Turn')+'</span>'
@@ -5003,7 +5046,7 @@ function ludoGame() {
 // ─── KLONDIKE SOLITAIRE ────────────────────────────────
 function solitaireGame() {
   var el = document.getElementById('gameBody');
-  var SUITS = ['♠','♥','♦','♣'], RED = {'♥':1,'♦':1};
+  var SUITS = ['<span style="color:#1a2e46">&#9824;</span>','<span style="color:#e63946">&#9829;</span>','<span style="color:#e63946">&#9830;</span>','<span style="color:#1a2e46">&#9827;</span>'], RED = {'<span style="color:#e63946">&#9829;</span>':1,'<span style="color:#e63946">&#9830;</span>':1};
   var deck = [], stock = [], waste = [], foundations = [[],[],[],[]], tableau = [[],[],[],[],[],[],[]];
 
   function makeCard(s,v){return {s:s,v:v,up:false};}
@@ -5500,7 +5543,7 @@ function fruitGame() {
       x:W*.15+Math.random()*W*.7, y:H+40,
       vx:vx, vy:vy,
       r:W*.055, sliced:false,
-      emoji:isBomb?'💣':FRUITS[Math.floor(Math.random()*FRUITS.length)],
+      emoji:isBomb?'&#128163;':FRUITS[Math.floor(Math.random()*FRUITS.length)],
       bomb:isBomb, rot:0, rotV:(Math.random()-.5)*.1, alpha:1
     });
   }
@@ -5997,7 +6040,7 @@ function sokobanGame() {
 
   function undo() { if (!history.length) return; state = history.pop(); moves = Math.max(0, moves-1); render(); }
 
-  var CELL = { '#':'🟫','@':'🧑','+':'🧑','$':'📦','*':'✅','.':'🟡',' ':'⬜' };
+  var CELL = { '#':'🟫','@':'🧑','+':'🧑','$':'📦','*':'✅','.':'&#11034;',' ':'⬜' };
 
   function render() {
     var g = state.grid;
@@ -6713,7 +6756,7 @@ function reversiGame(){
     var b=count(BLACK),w=count(WHITE);
     over=true;
     if(b>w)gameWin(20);else gameLose();
-    toast((b>w?'You win! ':'AI wins! ')+'⚫'+b+' ⚪'+w);
+    toast((b>w?'You win! ':'AI wins! ')+'&#9679; '+b+' &#9675; '+w);
   }
   function aiMove(){
     var mv=validMoves(WHITE);if(!mv.length)return;
@@ -6753,9 +6796,9 @@ function reversiGame(){
     }).join('');
     document.getElementById('gameBody').innerHTML='<div style="display:flex;flex-direction:column;align-items:center;padding:10px;gap:8px;flex:1;justify-content:center">'
       +'<div style="display:flex;justify-content:space-around;width:100%">'
-      +'<span style="font-size:13px;font-weight:700">⚫ You: '+count(BLACK)+'</span>'
+      +'<span style="font-size:13px;font-weight:700"><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#1a1a2e;border:2px solid #555;vertical-align:middle"></span> You: '+count(BLACK)+'</span>'
       +'<span style="font-size:11px;color:var(--text3)">'+(over?'Game over':turn===BLACK?'Your turn':'AI…')+'</span>'
-      +'<span style="font-size:13px;font-weight:700">⚪ AI: '+count(WHITE)+'</span>'
+      +'<span style="font-size:13px;font-weight:700"><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#fff;border:2px solid #aaa;vertical-align:middle"></span> AI: '+count(WHITE)+'</span>'
       +'</div>'
       +'<div style="border:2px solid rgba(255,255,255,.15);border-radius:4px;overflow:hidden">'+rows+'</div>'
       +'</div>';
@@ -6833,9 +6876,9 @@ function dotsGame(){
     svg+='</svg>';
     document.getElementById('gameBody').innerHTML='<div style="display:flex;flex-direction:column;align-items:center;padding:10px;gap:10px;flex:1;justify-content:center">'
       +'<div style="display:flex;justify-content:space-around;width:100%">'
-      +'<span style="color:#ef4444;font-weight:700">🔴 You: '+scores[0]+'</span>'
+      +'<span style="color:#ef4444;font-weight:700"><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#ef4444;vertical-align:middle"></span> You: '+scores[0]+'</span>'
       +'<span style="font-size:11px;color:var(--text3)">'+(over?'Done!':turn===0?'Your turn':'AI…')+'</span>'
-      +'<span style="color:#3b82f6;font-weight:700">🔵 AI: '+scores[1]+'</span>'
+      +'<span style="color:#3b82f6;font-weight:700"><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#3b82f6;vertical-align:middle"></span> AI: '+scores[1]+'</span>'
       +'</div>'+svg+'</div>';
   }
   window.dbL=function(t,r,c){
@@ -6896,9 +6939,9 @@ function gomokuGame(){
       }).join('')+'</div>';
     }).join('');
     document.getElementById('gameBody').innerHTML='<div style="display:flex;flex-direction:column;align-items:center;padding:8px;gap:8px;flex:1;justify-content:center">'
-      +'<div style="font-size:11px;color:var(--text3)">⚫ You vs ⚪ AI — 5 in a row wins</div>'
+      +'<div style="font-size:11px;color:var(--text3)"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#222;border:1px solid #555;vertical-align:middle"></span> You vs <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#fff;border:1px solid #aaa;vertical-align:middle"></span> AI — 5 in a row wins</div>'
       +'<div style="overflow:auto;border:2px solid rgba(255,255,255,.1);border-radius:4px">'+rows+'</div>'
-      +'<div style="font-size:11px;color:var(--text3)">'+(over?'Game over':turn===1?'Your turn ⚫':'AI thinking…')+'</div>'
+      +'<div style="font-size:11px;color:var(--text3)">'+(over?'Game over':turn===1?'Your turn <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#222;border:1px solid #555;vertical-align:middle"></span>':'AI thinking…')+'</div>'
       +'</div>';
   }
   window.gmC=function(r,c){
@@ -6959,7 +7002,7 @@ function goGame(){
     }).join('');
     document.getElementById('gameBody').innerHTML='<div style="display:flex;flex-direction:column;align-items:center;padding:8px;gap:8px;flex:1;justify-content:center">'
       +'<div style="display:flex;gap:16px;font-size:12px">'
-      +'<span>⚫ Caps: '+captures[0]+'</span><span style="color:var(--text3)">'+(turn===BLACK?'Your turn':'AI…')+'</span><span>⚪ Caps: '+captures[1]+'</span>'
+      +'<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#222;border:1px solid #555;vertical-align:middle"></span> '+captures[0]+'</span><span style="color:var(--text3)">'+(turn===BLACK?'Your turn':'AI…')+'</span><span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#fff;border:1px solid #aaa;vertical-align:middle"></span> '+captures[1]+'</span>'
       +'</div>'
       +'<div style="overflow:auto;border:2px solid rgba(255,255,255,.1);border-radius:4px">'+rows+'</div>'
       +'<button onclick="goPass()" style="padding:8px 24px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;font-size:12px;cursor:pointer">Pass ('+passes+'/2)</button>'
@@ -7072,7 +7115,7 @@ function backgammonGame(){
 
 // ─── STRATEGO (simplified) ───────────────────────────────────────
 function strategoGame(){
-  var PIECES={F:{n:'Flag',v:0,sym:'🚩'},B:{n:'Bomb',v:11,sym:'💣'},
+  var PIECES={F:{n:'Flag',v:0,sym:'&#9873;'},B:{n:'Bomb',v:11,sym:'[B]'},
     '1':{n:'Marshal',v:10,sym:'①'},'2':{n:'General',v:9,sym:'②'},'3':{n:'Colonel',v:8,sym:'③'},
     '4':{n:'Major',v:7,sym:'④'},'5':{n:'Captain',v:6,sym:'⑤'},'6':{n:'Lieutenant',v:5,sym:'⑥'},
     '7':{n:'Sergeant',v:4,sym:'⑦'},'8':{n:'Miner',v:3,sym:'⑧'},'9':{n:'Scout',v:2,sym:'⑨'},
@@ -7223,7 +7266,7 @@ function chinesecheckersGame(){
       var mv=moves(sel[0],sel[1]);
       if(mv.some(function(m){return m[0]===r&&m[1]===c;})){
         board[r][c]=1;board[sel[0]][sel[1]]=0;sel=null;
-        if(checkWin(1)){over=true;gameWin(20);toast('You win! 🌟');}else{turn=2;render();setTimeout(doAI,400);}
+        if(checkWin(1)){over=true;gameWin(20);toast('You win! &#10022;');}else{turn=2;render();setTimeout(doAI,400);}
         return;
       }
       sel=null;render();
@@ -7242,7 +7285,7 @@ function chinesecheckersGame(){
       }).join('')+'</div>';
     }).join('');
     document.getElementById('gameBody').innerHTML='<div style="display:flex;flex-direction:column;align-items:center;padding:10px;gap:8px;flex:1;justify-content:center">'
-      +'<div style="font-size:11px;color:var(--text3)">🔴 Move to bottom • 🔵 AI moves to top</div>'
+      +'<div style="font-size:11px;color:var(--text3)"><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#ef4444;vertical-align:middle"></span> Move to bottom • <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#3b82f6;vertical-align:middle"></span> AI moves to top</div>'
       +rows
       +'<div style="font-size:11px;color:var(--text3)">'+(over?'Game over':turn===1?'Tap piece then destination':'AI moving…')+'</div>'
       +'</div>';
@@ -7297,7 +7340,7 @@ function quoridorGame(){
       cells+='</div>';
     }
     document.getElementById('gameBody').innerHTML='<div style="display:flex;flex-direction:column;align-items:center;padding:8px;gap:8px;flex:1;justify-content:center">'
-      +'<div style="font-size:11px;color:var(--text3)">🔴 You → reach row 0 &nbsp;|&nbsp; 🔵 AI → reach row '+(SIZE-1)+'</div>'
+      +'<div style="font-size:11px;color:var(--text3)"><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#ef4444;vertical-align:middle"></span> You → reach row 0 &nbsp;|&nbsp; <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#3b82f6;vertical-align:middle"></span> AI → reach row '+(SIZE-1)+'</div>'
       +cells
       +'<div style="font-size:11px;color:var(--text3)">'+(over?'Game over':turn===0?'Tap green to move':'AI moving…')+'</div>'
       +'</div>';
@@ -8716,7 +8759,7 @@ function spidersolitaireGame(){
 
 // ─── WAR ─────────────────────────────────────────────────────────
 function warGame(){
-  var SUITS=['♠','♥','♦','♣'],VALS=['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+  var SUITS=['<span style="color:#1a2e46">&#9824;</span>','<span style="color:#e63946">&#9829;</span>','<span style="color:#e63946">&#9830;</span>','<span style="color:#1a2e46">&#9827;</span>'],VALS=['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
   var deck=[];
   SUITS.forEach(function(s){VALS.forEach(function(v,i){deck.push({s:s,v:v,rank:i});});});
   deck.sort(function(){return Math.random()-.5;});
@@ -8741,7 +8784,7 @@ function warGame(){
     render();
   }
   function render(){
-    var redSuits=['♥','♦'];
+    var redSuits=['<span style="color:#e63946">&#9829;</span>','<span style="color:#e63946">&#9830;</span>'];
     function card(c){return c?'<div style="width:64px;height:90px;background:white;border-radius:8px;border:2px solid rgba(0,0,0,.2);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.4)">'
       +'<div style="font-size:20px;font-weight:900;color:'+(redSuits.includes(c.s)?'#ef4444':'#111')+'">'+c.v+'</div>'
       +'<div style="font-size:20px">'+c.s+'</div>'
@@ -8804,7 +8847,7 @@ function addXP(amt) {
 // ═══════════════════════════════════════════════════════
 var ACHIEVEMENTS = [
   {id:'first_win',   icon:'🏆', name:'First Victory',  desc:'Win your first game',    check:function(){return wins>=1}},
-  {id:'ten_wins',    icon:'🌟', name:'On a Roll',       desc:'Win 10 games',           check:function(){return wins>=10}},
+  {id:'ten_wins',    icon:'&#10022;', name:'On a Roll',       desc:'Win 10 games',           check:function(){return wins>=10}},
   {id:'fifty_wins',  icon:'👑', name:'Champion',        desc:'Win 50 games',           check:function(){return wins>=50}},
   {id:'rich',        icon:'💰', name:'Loaded',          desc:'Earn 5000 coins',        check:function(){return coins>=5000}},
   {id:'explorer',    icon:'🗺️', name:'Explorer',        desc:'Play 20 different games',check:function(){return played>=20}},
