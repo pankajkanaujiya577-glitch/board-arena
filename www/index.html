@@ -899,10 +899,7 @@ html,body{
 
 </style>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
 <style>
 #syncDot{position:fixed;top:12px;right:14px;width:8px;height:8px;border-radius:50%;background:#94a3b8;z-index:999;transition:background .4s,box-shadow .4s;pointer-events:none}
 #syncDot.synced{background:#10b981;box-shadow:0 0 6px #10b981}
@@ -1008,32 +1005,15 @@ html,body{
       <button class="btn btn-ghost" onclick="copyCode()" style="width:auto;padding:6px 16px;font-size:11px;margin:8px auto 0;display:inline-flex">Copy Code</button>
     </div>
 
-    <div class="shop-section-title">Global Leaderboard</div>
-    <div id="leaderboardList">
-      <div class="leaderboard-item">
-        <div class="lb-rank gold">1</div>
-        <div class="lb-av"><img src="https://api.dicebear.com/9.x/bottts/svg?seed=ace" alt=""></div>
-        <div class="lb-info"><div class="lb-name">AcePlayer</div><div class="lb-score">142 wins</div></div>
-        <div class="lb-coins"><svg width="12" height="12" viewBox="0 0 24 24" style="display:inline-block;vertical-align:middle"><circle cx="12" cy="12" r="10" fill="#f59e0b"/><circle cx="12" cy="12" r="7" fill="#fbbf24"/><text x="12" y="16" font-size="11" text-anchor="middle" fill="#92400e" font-weight="bold">$</text></svg> 8,420</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div class="shop-section-title" style="margin:0">Global Leaderboard</div>
+      <div id="lbTab" style="display:flex;gap:4px">
+        <button id="lbBtnWins"  onclick="switchLbTab('wins')"  style="font-size:10px;font-weight:800;padding:4px 10px;border-radius:8px;border:1.5px solid rgba(74,158,255,.4);background:var(--blue-deep);color:#fff;cursor:pointer">Wins</button>
+        <button id="lbBtnCoins" onclick="switchLbTab('coins')" style="font-size:10px;font-weight:800;padding:4px 10px;border-radius:8px;border:1.5px solid rgba(74,158,255,.4);background:transparent;color:var(--text3);cursor:pointer">Coins</button>
       </div>
-      <div class="leaderboard-item">
-        <div class="lb-rank silver">2</div>
-        <div class="lb-av"><img src="https://api.dicebear.com/9.x/adventurer/svg?seed=blaze" alt=""></div>
-        <div class="lb-info"><div class="lb-name">Blaze99</div><div class="lb-score">98 wins</div></div>
-        <div class="lb-coins"><svg width="12" height="12" viewBox="0 0 24 24" style="display:inline-block;vertical-align:middle"><circle cx="12" cy="12" r="10" fill="#f59e0b"/><circle cx="12" cy="12" r="7" fill="#fbbf24"/><text x="12" y="16" font-size="11" text-anchor="middle" fill="#92400e" font-weight="bold">$</text></svg> 5,210</div>
-      </div>
-      <div class="leaderboard-item">
-        <div class="lb-rank bronze">3</div>
-        <div class="lb-av"><img src="https://api.dicebear.com/9.x/pixel-art/svg?seed=nova" alt=""></div>
-        <div class="lb-info"><div class="lb-name">Nova</div><div class="lb-score">76 wins</div></div>
-        <div class="lb-coins"><svg width="12" height="12" viewBox="0 0 24 24" style="display:inline-block;vertical-align:middle"><circle cx="12" cy="12" r="10" fill="#f59e0b"/><circle cx="12" cy="12" r="7" fill="#fbbf24"/><text x="12" y="16" font-size="11" text-anchor="middle" fill="#92400e" font-weight="bold">$</text></svg> 3,800</div>
-      </div>
-      <div class="leaderboard-item" id="myLbRow" style="border-color:rgba(74,158,255,.3);background:linear-gradient(135deg,#e8f4ff,#f0f7ff)">
-        <div class="lb-rank" id="myLbRank">—</div>
-        <div class="lb-av"><img id="myLbAv" src="https://api.dicebear.com/9.x/bottts/svg?seed=alpha" alt=""></div>
-        <div class="lb-info"><div class="lb-name" id="myLbName">You</div><div class="lb-score" id="myLbScore">0 wins</div></div>
-        <div class="lb-coins" id="myLbCoins"><svg width="12" height="12" viewBox="0 0 24 24" style="display:inline-block;vertical-align:middle"><circle cx="12" cy="12" r="10" fill="#f59e0b"/><circle cx="12" cy="12" r="7" fill="#fbbf24"/><text x="12" y="16" font-size="11" text-anchor="middle" fill="#92400e" font-weight="bold">$</text></svg> 1,000</div>
-      </div>
+    </div>
+    <div id="leaderboardList" style="min-height:160px">
+      <div style="text-align:center;padding:32px;color:var(--text3);font-size:13px;font-weight:700">Loading leaderboard...</div>
     </div>
 
     <div class="shop-section-title">Daily Challenge</div>
@@ -1577,6 +1557,7 @@ function SS(id) {
 }
 
 function navTo(name, el) {
+  if(name==='friends') { _lbCacheTime=0; setTimeout(updateLeaderboard,300); }
   SS('scr-' + name);
   // Update nav active states on all navs
   var navs = document.querySelectorAll('.bnav .ni');
@@ -2507,6 +2488,8 @@ function gameWin(pts) {
   if(_gameEnded) return;
   _gameEnded = true;
   wins++; played++;
+  // Update leaderboard in cloud on every win
+  setTimeout(function(){ if(typeof BA_Firebase!=='undefined') BA_Firebase.updateLeaderboard(); }, 2000);
   var earned = awardCoins(pts || 10);
   haptic('win');
   playSound('win');
@@ -9194,15 +9177,107 @@ function buyPowerup(type, cost) {
 // ═══════════════════════════════════════════════════════
 // COMMUNITY / LEADERBOARD
 // ═══════════════════════════════════════════════════════
+// ── Leaderboard tab state ──────────────────────────────────────────
+var _lbTab = 'wins';
+var _lbCache = null;
+var _lbCacheTime = 0;
+var _lbRefreshTimer = null;
+
+function switchLbTab(tab) {
+  _lbTab = tab;
+  var bW = document.getElementById('lbBtnWins');
+  var bC = document.getElementById('lbBtnCoins');
+  if(bW) { bW.style.background = tab==='wins'?'var(--blue-deep)':'transparent'; bW.style.color = tab==='wins'?'#fff':'var(--text3)'; }
+  if(bC) { bC.style.background = tab==='coins'?'var(--blue-deep)':'transparent'; bC.style.color = tab==='coins'?'#fff':'var(--text3)'; }
+  _renderLeaderboard(_lbCache);
+}
+
+function _lbCoinSvg() {
+  return '<svg width="12" height="12" viewBox="0 0 24 24" style="display:inline-block;vertical-align:middle"><circle cx="12" cy="12" r="10" fill="#f59e0b"/><circle cx="12" cy="12" r="7" fill="#fbbf24"/><text x="12" y="16" font-size="11" text-anchor="middle" fill="#92400e" font-weight="bold">$</text></svg>';
+}
+
+function _renderLeaderboard(entries) {
+  var el = document.getElementById('leaderboardList');
+  if(!el) return;
+  if(!entries || !entries.length) {
+    el.innerHTML = '<div class="lb-empty">No players yet — be the first!</div>';
+    return;
+  }
+
+  // Sort by selected tab
+  var sorted = entries.slice().sort(function(a,b){
+    return _lbTab==='wins' ? (b.wins||0)-(a.wins||0) : (b.coins||0)-(a.coins||0);
+  });
+
+  // Find my rank
+  var myUid = BA_Firebase ? BA_Firebase.getUid() : null;
+  var myRank = -1;
+  sorted.forEach(function(p,i){ if(p.uid===myUid) myRank=i+1; });
+
+  var rankLabel = ['','&#127941;','&#129352;','&#129353;']; // 🥇🥈🥉
+  var html = '';
+
+  // Top 10
+  sorted.slice(0,10).forEach(function(p,i) {
+    var rank = i+1;
+    var isMe = p.uid === myUid;
+    var rankStr = rank<=3 ? rankLabel[rank] : rank;
+    var rankCls = rank===1?'gold':rank===2?'silver':rank===3?'bronze':'';
+    var av = 'https://api.dicebear.com/9.x/'+(p.avatarStyle||'bottts')+'/svg?seed='+encodeURIComponent(p.playerName||'?');
+    var score = _lbTab==='wins' ? (p.wins||0)+' wins' : _lbCoinSvg()+'&nbsp;'+(p.coins||0).toLocaleString();
+    html += '<div class="leaderboard-item'+(isMe?' lb-my-row':'')+'">'
+      +'<div class="lb-rank-num '+rankCls+'">'+rankStr+'</div>'
+      +'<div class="lb-av"><img src="'+av+'" alt="" style="width:32px;height:32px;border-radius:50%"></div>'
+      +'<div class="lb-info"><div class="lb-name">'+(isMe?'<b>'+escHtml(p.playerName||'You')+'</b>':escHtml(p.playerName||'Player'))+'</div>'
+      +'<div class="lb-score">'+score+'</div></div>'
+      +'</div>';
+  });
+
+  // Show my row below top 10 if I'm not in it
+  if(myRank > 10) {
+    var me = sorted[myRank-1];
+    html += '<div style="text-align:center;font-size:10px;color:var(--text3);padding:4px">• • •</div>';
+    html += '<div class="leaderboard-item lb-my-row">'
+      +'<div class="lb-rank-num">'+myRank+'</div>'
+      +'<div class="lb-av"><img src="https://api.dicebear.com/9.x/'+(avatarStyle||'bottts')+'/svg?seed='+encodeURIComponent(playerName)+'" alt="" style="width:32px;height:32px;border-radius:50%"></div>'
+      +'<div class="lb-info"><div class="lb-name"><b>'+escHtml(playerName)+'</b></div>'
+      +'<div class="lb-score">'+(_lbTab==='wins'?(wins+' wins'):_lbCoinSvg()+'&nbsp;'+coins.toLocaleString())+'</div></div>'
+      +'</div>';
+  }
+
+  el.innerHTML = html;
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
 function updateLeaderboard() {
-  var nameEl = document.getElementById('myLbName');
-  var scoreEl = document.getElementById('myLbScore');
-  var coinsEl = document.getElementById('myLbCoins');
-  var avEl = document.getElementById('myLbAv');
-  if(nameEl) nameEl.textContent = playerName;
-  if(scoreEl) scoreEl.textContent = wins + ' wins';
-  if(coinsEl) coinsEl.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" style="display:inline-block;vertical-align:middle"><circle cx="12" cy="12" r="10" fill="#f59e0b"/><circle cx="12" cy="12" r="7" fill="#fbbf24"/><text x="12" y="16" font-size="11" text-anchor="middle" fill="#92400e" font-weight="bold">$</text></svg>&nbsp;' + coins.toLocaleString();
-  if(avEl) avEl.src = 'https://api.dicebear.com/9.x/'+avatarStyle+'/svg?seed='+playerName;
+  // Update my own local row immediately (instant)
+  var now = Date.now();
+
+  // Push my latest score to Firestore leaderboard collection
+  if(typeof BA_Firebase !== 'undefined' && BA_Firebase.getUid()) {
+    BA_Firebase.updateLeaderboard();
+  }
+
+  // Refresh leaderboard data — cache for 60 seconds so tab switches are instant
+  if(_lbCache && now - _lbCacheTime < 60000) {
+    _renderLeaderboard(_lbCache);
+    return;
+  }
+
+  // Fetch fresh from Firestore
+  if(typeof BA_Firebase !== 'undefined') {
+    BA_Firebase.fetchLeaderboard(function(entries) {
+      _lbCache = entries;
+      _lbCacheTime = Date.now();
+      _renderLeaderboard(entries);
+    });
+  } else {
+    // Offline fallback — show just the current player
+    _renderLeaderboard([{uid:'local',playerName:playerName,wins:wins,coins:coins,avatarStyle:avatarStyle}]);
+  }
 }
 
 function copyCode() {
@@ -9450,6 +9525,8 @@ saveData = function() {
   } catch(e){}
   // Mirror to cloud (debounced — won't spam)
   if(typeof BA_Firebase !== 'undefined') BA_Firebase.save();
+  // On very first save, also mark that we have real data
+  if(!localStorage.getItem('ba_hasdata')) localStorage.setItem('ba_hasdata','1');
 };
 
 var _origLoad = loadData;
@@ -9838,232 +9915,346 @@ if (window.Capacitor) {
 
 
 // ═══════════════════════════════════════════════════════════════════════
-// FIREBASE — Phase 1: Auth + Cloud Save
+// FIREBASE — Phase 1: Auth + Cloud Save (REST API — no SDK required)
+// Uses Firebase REST API directly via fetch() — works in any WebView
 // ═══════════════════════════════════════════════════════════════════════
 var BA_Firebase = (function() {
 
-  // ── YOUR FIREBASE CONFIG ──────────────────────────────────────────
-  // TODO: Replace with your actual Firebase project config
-  // Get it from: Firebase Console → Project Settings → Your apps → SDK setup
-  var FIREBASE_CONFIG = {
-    apiKey:            "AIzaSyBsZYUokYt79cUxz1b_EN2UsmqYNDyxCWQ",
-    authDomain:        "board-arena-6df87.firebaseapp.com",
-    projectId:         "board-arena-6df87",
-    storageBucket:     "board-arena-6df87.firebasestorage.app",
-    messagingSenderId: "979745334759",
-    appId:             "1:979745334759:web:a9bf9cc17c0f178d30c942",
-    measurementId:     "G-L88WGX48EY"
-  };
+  var API_KEY    = "AIzaSyBsZYUokYt79cUxz1b_EN2UsmqYNDyxCWQ";
+  var PROJECT_ID = "board-arena-6df87";
+  var AUTH_URL   = "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=" + API_KEY;
+  var FS_URL     = "https://firestore.googleapis.com/v1/projects/" + PROJECT_ID + "/databases/(default)/documents/players/";
 
-  var _app = null;
-  var _db  = null;
-  var _auth = null;
-  var _uid  = null;
-  var _ready = false;
-  var _syncTimeout = null;
-  var _lastSyncedHash = '';
+  var _uid       = null;
+  var _token     = null;
+  var _tokenExp  = 0;
+  var _ready     = false;
+  var _saveTimer = null;
+  var _lastHash  = '';
 
-  // ── SYNC DOT HELPER ────────────────────────────────────────────────
+  // ── SYNC DOT ──────────────────────────────────────────────────────
+  var _dotTimer = null;
   function _dot(state) {
     var el = document.getElementById('syncDot');
     var lb = document.getElementById('profSyncStatus');
     if (!el) return;
     el.className = state;
-    var labels = {
-      synced:  '&#9679; Cloud saved',
-      syncing: '&#8635; Syncing...',
-      offline: '&#9675; Offline',
-      hidden:  ''
-    };
+    var labels = { synced:'&#9679; Cloud saved', syncing:'&#8635; Syncing...', offline:'&#9675; Offline', hidden:'' };
     if (lb) lb.innerHTML = labels[state] || '';
-    // Auto-hide the dot after 3s when synced
     if (state === 'synced') {
-      clearTimeout(_syncTimeout);
-      _syncTimeout = setTimeout(function() {
-        if (el.className === 'synced') el.className = 'hidden';
-      }, 3000);
+      clearTimeout(_dotTimer);
+      _dotTimer = setTimeout(function(){ if(el.className==='synced') el.className='hidden'; }, 3000);
     }
   }
 
-  // ── BUILD SAVE PAYLOAD ─────────────────────────────────────────────
+  // ── FIRESTORE VALUE CONVERTERS ────────────────────────────────────
+  function _toFS(obj) {
+    // Convert JS object to Firestore REST format
+    function _val(v) {
+      if (v === null || v === undefined) return { nullValue: null };
+      if (typeof v === 'boolean') return { booleanValue: v };
+      if (typeof v === 'number')  return { integerValue: String(Math.round(v)) };
+      if (typeof v === 'string')  return { stringValue: v };
+      if (Array.isArray(v))       return { arrayValue: { values: v.map(_val) } };
+      if (typeof v === 'object')  return { mapValue: { fields: _toFSFields(v) } };
+      return { stringValue: String(v) };
+    }
+    function _toFSFields(o) {
+      var f = {};
+      Object.keys(o).forEach(function(k){ f[k] = _val(o[k]); });
+      return f;
+    }
+    return { fields: _toFSFields(obj) };
+  }
+
+  function _fromFS(doc) {
+    // Convert Firestore REST format back to JS object
+    if (!doc || !doc.fields) return null;
+    function _parse(v) {
+      if (!v) return null;
+      if (v.nullValue  !== undefined) return null;
+      if (v.booleanValue !== undefined) return v.booleanValue;
+      if (v.integerValue !== undefined) return parseInt(v.integerValue);
+      if (v.doubleValue  !== undefined) return parseFloat(v.doubleValue);
+      if (v.stringValue  !== undefined) return v.stringValue;
+      if (v.arrayValue)  return (v.arrayValue.values || []).map(_parse);
+      if (v.mapValue)    return _parseFields(v.mapValue.fields || {});
+      return null;
+    }
+    function _parseFields(f) {
+      var o = {};
+      Object.keys(f).forEach(function(k){ o[k] = _parse(f[k]); });
+      return o;
+    }
+    return _parseFields(doc.fields);
+  }
+
+  // ── SCORE FOR CONFLICT RESOLUTION ────────────────────────────────
+  function _score(d) {
+    return (d.coins||0) + (d.xp||0)*10 + (d.wins||0)*50 + (d.played||0)*5;
+  }
+
+  // ── BUILD PAYLOAD ─────────────────────────────────────────────────
   function _payload() {
     return {
-      v: 1, // schema version — bump if fields change
-      ts: Date.now(),
-      coins: coins,
-      playerName: playerName,
-      avatarStyle: avatarStyle,
-      wins: wins,
-      losses: losses,
-      played: played,
-      difficulty: difficulty,
-      xp: xp,
-      unlockedAch: unlockedAch || {},
-      hardWins: hardWins || 0,
-      winStreak: winStreak || 0,
-      dailyWins: dailyWins || 0,
-      dailyClaimed: dailyClaimed || false,
-      powerups: powerups || {},
-      ownedAvatars: ownedAvatars || [],
-      ownedThemes: ownedThemes || [],
-      ownedTitles: ownedTitles || [],
-      playerTitle: playerTitle || '',
-      nameChanges: nameChanges || 0,
-      joinDate: localStorage.getItem('ba_joindate') || new Date().getFullYear().toString(),
-      friendCode: localStorage.getItem('ba_code') || '',
-      best2048: parseInt(localStorage.getItem('ba_2048best') || '0')
+      v:1, ts:Date.now(),
+      coins:coins, playerName:playerName, avatarStyle:avatarStyle,
+      wins:wins, losses:losses, played:played, difficulty:difficulty,
+      xp:xp, hardWins:hardWins||0, winStreak:winStreak||0,
+      dailyWins:dailyWins||0, dailyClaimed:dailyClaimed||false,
+      powerups:powerups||{}, ownedAvatars:ownedAvatars||[],
+      ownedThemes:ownedThemes||[], ownedTitles:ownedTitles||[],
+      playerTitle:playerTitle||'', nameChanges:nameChanges||0,
+      joinDate:localStorage.getItem('ba_joindate')||'',
+      friendCode:localStorage.getItem('ba_code')||'',
+      best2048:parseInt(localStorage.getItem('ba_2048best')||'0'),
+      unlockedAch: (function(){
+        try { return unlockedAch||{}; } catch(e){ return {}; }
+      })()
     };
   }
 
-  // ── CONFLICT RESOLUTION ────────────────────────────────────────────
-  // Take whichever snapshot represents more overall progress
-  function _score(d) {
-    return (d.coins || 0) + (d.xp || 0) * 10 + (d.wins || 0) * 50 + (d.played || 0) * 5;
-  }
-
-  // ── APPLY CLOUD DATA LOCALLY ───────────────────────────────────────
+  // ── APPLY CLOUD DATA ─────────────────────────────────────────────
   function _applyCloud(d) {
     if (!d || d.v === undefined) return;
-    // Only apply if cloud has more progress
-    var localScore = _score(_payload());
-    var cloudScore = _score(d);
-    if (cloudScore <= localScore) return; // local is ahead, keep it
-
-    if (d.coins !== undefined)      coins = d.coins;
-    if (d.playerName)               playerName = d.playerName;
-    if (d.avatarStyle)              avatarStyle = d.avatarStyle;
-    if (d.wins !== undefined)       wins = d.wins;
-    if (d.losses !== undefined)     losses = d.losses;
-    if (d.played !== undefined)     played = d.played;
-    if (d.difficulty)               difficulty = d.difficulty;
-    if (d.xp !== undefined)         xp = d.xp;
-    if (d.unlockedAch)              unlockedAch = d.unlockedAch;
-    if (d.hardWins !== undefined)   hardWins = d.hardWins;
-    if (d.winStreak !== undefined)  winStreak = d.winStreak;
-    if (d.dailyWins !== undefined)  dailyWins = d.dailyWins;
-    if (d.dailyClaimed !== undefined) dailyClaimed = d.dailyClaimed;
-    if (d.powerups)                 powerups = d.powerups;
-    if (d.ownedAvatars && d.ownedAvatars.length) ownedAvatars = d.ownedAvatars;
-    if (d.ownedThemes && d.ownedThemes.length)   ownedThemes = d.ownedThemes;
-    if (d.ownedTitles && d.ownedTitles.length)   ownedTitles = d.ownedTitles;
-    if (d.playerTitle)              playerTitle = d.playerTitle;
-    if (d.nameChanges !== undefined) nameChanges = d.nameChanges;
-    if (d.joinDate && !localStorage.getItem('ba_joindate')) localStorage.setItem('ba_joindate', d.joinDate);
-    if (d.friendCode && !localStorage.getItem('ba_code'))  localStorage.setItem('ba_code', d.friendCode);
-    if (d.best2048)                 localStorage.setItem('ba_2048best', d.best2048);
-
-    // Persist to local after applying cloud
-    saveData();
-    updateUI();
-    console.log('[Firebase] Cloud data applied — cloud was ahead by', cloudScore - localScore, 'pts');
+    var isFresh = !localStorage.getItem('ba_data');
+    if (!isFresh) {
+      if (_score(d) <= _score(_payload())) return;
+    }
+    if (d.coins!==undefined)     coins=d.coins;
+    if (d.playerName)            playerName=d.playerName;
+    if (d.avatarStyle)           avatarStyle=d.avatarStyle;
+    if (d.wins!==undefined)      wins=d.wins;
+    if (d.losses!==undefined)    losses=d.losses;
+    if (d.played!==undefined)    played=d.played;
+    if (d.difficulty)            difficulty=d.difficulty;
+    if (d.xp!==undefined)        xp=d.xp;
+    if (d.unlockedAch)           unlockedAch=d.unlockedAch;
+    if (d.hardWins!==undefined)  hardWins=d.hardWins;
+    if (d.winStreak!==undefined) winStreak=d.winStreak;
+    if (d.dailyWins!==undefined) dailyWins=d.dailyWins;
+    if (d.dailyClaimed!==undefined) dailyClaimed=d.dailyClaimed;
+    if (d.powerups)              powerups=d.powerups;
+    if (d.ownedAvatars&&d.ownedAvatars.length) ownedAvatars=d.ownedAvatars;
+    if (d.ownedThemes&&d.ownedThemes.length)   ownedThemes=d.ownedThemes;
+    if (d.ownedTitles&&d.ownedTitles.length)   ownedTitles=d.ownedTitles;
+    if (d.playerTitle)           playerTitle=d.playerTitle;
+    if (d.nameChanges!==undefined) nameChanges=d.nameChanges;
+    if (d.joinDate&&!localStorage.getItem('ba_joindate')) localStorage.setItem('ba_joindate',d.joinDate);
+    if (d.friendCode&&!localStorage.getItem('ba_code'))  localStorage.setItem('ba_code',d.friendCode);
+    if (d.best2048) localStorage.setItem('ba_2048best',d.best2048);
+    saveData(); updateUI();
+    console.log('[Firebase] Cloud data restored');
   }
 
-  // ── CLOUD SAVE (DEBOUNCED) ─────────────────────────────────────────
-  var _saveTimer = null;
-  function cloudSave() {
-    if (!_ready || !_uid || !_db) return;
-    clearTimeout(_saveTimer);
-    _saveTimer = setTimeout(function() {
-      var data = _payload();
-      var hash = JSON.stringify([data.coins, data.xp, data.wins, data.played]);
-      if (hash === _lastSyncedHash) return; // nothing changed
-      _dot('syncing');
-      _db.collection('players').doc(_uid).set(data, { merge: true })
-        .then(function() {
-          _lastSyncedHash = hash;
-          _dot('synced');
-        })
-        .catch(function(e) {
-          console.warn('[Firebase] Save failed:', e);
-          _dot('offline');
-        });
-    }, 1500); // debounce — batch rapid saves
-  }
+  // ── GET FRESH TOKEN (anonymous auth) ─────────────────────────────
+  function _getToken(cb) {
+    var now = Date.now();
+    // Reuse token if not expired (tokens last 1hr, refresh at 50min)
+    if (_token && _tokenExp > now + 600000) { cb(_token); return; }
 
-  // ── CLOUD LOAD ─────────────────────────────────────────────────────
-  function cloudLoad() {
-    if (!_ready || !_uid || !_db) return;
-    _db.collection('players').doc(_uid).get()
-      .then(function(doc) {
-        if (doc.exists) {
-          _applyCloud(doc.data());
-          _dot('synced');
+    // Try to use stored uid to refresh token, else sign up fresh
+    var stored = localStorage.getItem('ba_uid');
+    var url = stored
+      ? "https://securetoken.googleapis.com/v1/token?key=" + API_KEY
+      : AUTH_URL;
+
+    if (stored) {
+      // Exchange refresh token for new ID token
+      var rt = localStorage.getItem('ba_rt');
+      if (!rt) { _freshSignIn(cb); return; }
+      fetch("https://securetoken.googleapis.com/v1/token?key=" + API_KEY, {
+        method:'POST',
+        headers:{'Content-Type':'application/x-www-form-urlencoded'},
+        body:'grant_type=refresh_token&refresh_token=' + encodeURIComponent(rt)
+      })
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if (d.id_token) {
+          _token = d.id_token;
+          _tokenExp = now + 3600000;
+          if (d.refresh_token) localStorage.setItem('ba_rt', d.refresh_token);
+          _uid = d.user_id || stored;
+          localStorage.setItem('ba_uid', _uid);
+          cb(_token);
         } else {
-          // First time — push local data up
-          cloudSave();
+          _freshSignIn(cb);
         }
       })
-      .catch(function(e) {
-        console.warn('[Firebase] Load failed:', e);
-        _dot('offline');
-      });
+      .catch(function(){ _freshSignIn(cb); });
+    } else {
+      _freshSignIn(cb);
+    }
   }
 
-  // ── INIT ───────────────────────────────────────────────────────────
-  function init() {
-    // Guard: skip if config not filled in
-    if (FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY') {
-      console.log('[Firebase] No config — running offline only');
-      _dot('offline');
-      return;
-    }
-
-    try {
-      // Prevent double-init
-      if (firebase.apps.length === 0) {
-        _app = firebase.initializeApp(FIREBASE_CONFIG);
+  function _freshSignIn(cb) {
+    fetch(AUTH_URL, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({returnSecureToken:true})
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (d.idToken) {
+        _token = d.idToken;
+        _tokenExp = Date.now() + 3600000;
+        _uid = d.localId;
+        localStorage.setItem('ba_uid', _uid);
+        localStorage.setItem('ba_rt', d.refreshToken || '');
+        _ready = true;
+        console.log('[Firebase] Signed in:', _uid.slice(0,8)+'...');
+        cb(_token);
       } else {
-        _app = firebase.apps[0];
+        console.warn('[Firebase] Sign-in failed:', JSON.stringify(d));
+        _dot('offline');
       }
-      _db   = firebase.firestore();
-      _auth = firebase.auth();
-
-      // Enable offline persistence (works without internet)
-      _db.enablePersistence({ synchronizeTabs: true })
-        .catch(function(e) {
-          if (e.code !== 'failed-precondition' && e.code !== 'unimplemented') {
-            console.warn('[Firebase] Persistence:', e);
-          }
-        });
-
-      // Anonymous sign-in — silent, automatic
-      _auth.onAuthStateChanged(function(user) {
-        if (user) {
-          _uid = user.uid;
-          _ready = true;
-          // Store uid locally so we can identify this install
-          localStorage.setItem('ba_uid', _uid);
-          console.log('[Firebase] Auth OK:', _uid.slice(0,8)+'...');
-          cloudLoad();
-        } else {
-          // Not signed in — sign in anonymously
-          _auth.signInAnonymously()
-            .catch(function(e) {
-              console.warn('[Firebase] Auth failed:', e);
-              _dot('offline');
-            });
-        }
-      });
-
-    } catch(e) {
-      console.warn('[Firebase] Init failed:', e);
+    })
+    .catch(function(e){
+      console.warn('[Firebase] Auth error:', e);
       _dot('offline');
-    }
+    });
   }
 
-  // ── PUBLIC API ─────────────────────────────────────────────────────
+  // ── CLOUD SAVE ───────────────────────────────────────────────────
+  function cloudSave() {
+    clearTimeout(_saveTimer);
+    _saveTimer = setTimeout(function(){
+      var data = _payload();
+      var hash = JSON.stringify([data.coins, data.xp, data.wins, data.played]);
+      if (hash === _lastHash) return;
+      _dot('syncing');
+      _getToken(function(token){
+        if (!token || !_uid) { _dot('offline'); return; }
+        fetch(FS_URL + _uid + '?updateMask.fieldPaths=v&updateMask.fieldPaths=ts&updateMask.fieldPaths=coins&updateMask.fieldPaths=playerName&updateMask.fieldPaths=avatarStyle&updateMask.fieldPaths=wins&updateMask.fieldPaths=losses&updateMask.fieldPaths=played&updateMask.fieldPaths=difficulty&updateMask.fieldPaths=xp&updateMask.fieldPaths=hardWins&updateMask.fieldPaths=winStreak&updateMask.fieldPaths=dailyWins&updateMask.fieldPaths=dailyClaimed&updateMask.fieldPaths=powerups&updateMask.fieldPaths=ownedAvatars&updateMask.fieldPaths=ownedThemes&updateMask.fieldPaths=ownedTitles&updateMask.fieldPaths=playerTitle&updateMask.fieldPaths=nameChanges&updateMask.fieldPaths=joinDate&updateMask.fieldPaths=friendCode&updateMask.fieldPaths=best2048&updateMask.fieldPaths=unlockedAch', {
+          method:'PATCH',
+          headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+          body:JSON.stringify(_toFS(data))
+        })
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+          if (d.name) {
+            _lastHash = hash;
+            _dot('synced');
+          } else {
+            console.warn('[Firebase] Save response:', JSON.stringify(d));
+            _dot('offline');
+          }
+        })
+        .catch(function(e){ console.warn('[Firebase] Save error:', e); _dot('offline'); });
+      });
+    }, 1500);
+  }
+
+  // ── CLOUD LOAD ───────────────────────────────────────────────────
+  function cloudLoad() {
+    _getToken(function(token){
+      if (!token || !_uid) { _dot('offline'); return; }
+      fetch(FS_URL + _uid, {
+        headers:{'Authorization':'Bearer '+token}
+      })
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if (d.fields) {
+          _applyCloud(_fromFS(d));
+          _dot('synced');
+        } else if (d.error && d.error.code === 404) {
+          // No doc yet — push local data up
+          cloudSave();
+        } else {
+          _dot('offline');
+        }
+      })
+      .catch(function(e){ console.warn('[Firebase] Load error:', e); _dot('offline'); });
+    });
+  }
+
+  // ── INIT ─────────────────────────────────────────────────────────
+  function init() {
+    console.log('[Firebase] Initialising (REST mode)...');
+    _dot('syncing');
+    cloudLoad();
+  }
+
+  // ── UPDATE MY LEADERBOARD ENTRY ────────────────────────────────
+  function updateLeaderboard() {
+    if (!_uid) return;
+    _getToken(function(token) {
+      if (!token) return;
+      var LB = "https://firestore.googleapis.com/v1/projects/board-arena-6df87/databases/(default)/documents/leaderboard/";
+      var data = {
+        uid: _uid,
+        playerName: playerName,
+        avatarStyle: avatarStyle,
+        wins: wins,
+        coins: coins,
+        played: played,
+        ts: Date.now()
+      };
+      fetch(LB + _uid, {
+        method: 'PATCH',
+        headers: {'Content-Type':'application/json','Authorization':'Bearer '+token},
+        body: JSON.stringify(_toFS(data))
+      }).catch(function(e){ console.warn('[Firebase] LB update error:', e); });
+    });
+  }
+
+  // ── FETCH TOP LEADERBOARD ───────────────────────────────────────
+  function fetchLeaderboard(cb) {
+    if (!_uid) { cb([]); return; }
+    _getToken(function(token) {
+      if (!token) { cb([]); return; }
+      // Firestore REST structured query — get top 50 by wins desc
+      var url = "https://firestore.googleapis.com/v1/projects/board-arena-6df87/databases/(default)/documents:runQuery";
+      var query = {
+        structuredQuery: {
+          from: [{collectionId: 'leaderboard'}],
+          orderBy: [{field:{fieldPath:'wins'}, direction:'DESCENDING'}],
+          limit: 50
+        }
+      };
+      fetch(url, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','Authorization':'Bearer '+token},
+        body: JSON.stringify(query)
+      })
+      .then(function(r){ return r.json(); })
+      .then(function(results) {
+        var entries = [];
+        if (Array.isArray(results)) {
+          results.forEach(function(r) {
+            if (r.document && r.document.fields) {
+              var d = _fromFS(r.document);
+              if (d && d.playerName) entries.push(d);
+            }
+          });
+        }
+        cb(entries);
+      })
+      .catch(function(e) {
+        console.warn('[Firebase] LB fetch error:', e);
+        cb([]);
+      });
+    });
+  }
+
   return {
-    init:      init,
-    save:      cloudSave,
-    load:      cloudLoad,
-    getUid:    function() { return _uid; },
-    isReady:   function() { return _ready; }
+    init:              init,
+    save:              cloudSave,
+    load:              cloudLoad,
+    getUid:            function(){ return _uid; },
+    isReady:           function(){ return _ready; },
+    updateLeaderboard: updateLeaderboard,
+    fetchLeaderboard:  fetchLeaderboard
   };
 
 })();
 
 // Init on load
-document.addEventListener('DOMContentLoaded', function() { loadData(); updateUI(); BA_Firebase.init(); });
+document.addEventListener('DOMContentLoaded', function() {
+  loadData();
+  updateUI();
+  BA_Firebase.init();
+});
 
 </script>
 </body>
