@@ -1005,6 +1005,20 @@ html,body{
       <button class="btn btn-ghost" onclick="copyCode()" style="width:auto;padding:6px 16px;font-size:11px;margin:8px auto 0;display:inline-flex">Copy Code</button>
     </div>
 
+    <div class="shop-section-title" style="margin-top:16px">Find a Player</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <input id="friendSearchInput" type="text" placeholder="Enter BA-XXXX code..."
+        style="flex:1;padding:10px 14px;border-radius:12px;border:1.5px solid var(--border);background:var(--card);color:var(--text);font-size:13px;font-weight:700;outline:none"
+        oninput="this.value=this.value.toUpperCase()" maxlength="7"/>
+      <button class="btn btn-purple" onclick="searchFriend()" style="padding:10px 16px;font-size:12px">Search</button>
+    </div>
+    <div id="friendSearchResult" style="min-height:60px"></div>
+
+    <div class="shop-section-title" style="margin-top:16px">Friends <span id="friendCount" style="font-size:11px;color:var(--text3);font-weight:700"></span></div>
+    <div id="friendsList">
+      <div style="text-align:center;padding:24px;color:var(--text3);font-size:12px;font-weight:700">Search a player code to add friends</div>
+    </div>
+
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
       <div class="shop-section-title" style="margin:0">Global Leaderboard</div>
       <div id="lbTab" style="display:flex;gap:4px">
@@ -1557,7 +1571,11 @@ function SS(id) {
 }
 
 function navTo(name, el) {
-  if(name==='friends') { _lbCacheTime=0; setTimeout(updateLeaderboard,300); }
+  if(name==='friends') {
+    _lbCacheTime=0;
+    setTimeout(updateLeaderboard,300);
+    setTimeout(renderFriendsList,500);
+  }
   SS('scr-' + name);
   // Update nav active states on all navs
   var navs = document.querySelectorAll('.bnav .ni');
@@ -9283,8 +9301,138 @@ function updateLeaderboard() {
 function copyCode() {
   var code = document.getElementById('friendCode');
   if(!code) return;
-  if(navigator.clipboard) navigator.clipboard.writeText(code.textContent);
+  var text = code.textContent;
+  if(navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(function(){ toast('Code copied!'); }).catch(function(){
+      _fallbackCopy(text);
+    });
+  } else {
+    _fallbackCopy(text);
+  }
+}
+function _fallbackCopy(text) {
+  var ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;top:-999px';
+  document.body.appendChild(ta);
+  ta.select(); document.execCommand('copy');
+  document.body.removeChild(ta);
   toast('Code copied!');
+}
+
+// ── FRIENDS SYSTEM ──────────────────────────────────────────────────
+var _friends = {}; // uid → player data, loaded from localStorage
+
+function _loadFriends() {
+  try { _friends = JSON.parse(localStorage.getItem('ba_friends')||'{}'); } catch(e){ _friends={}; }
+}
+
+function _saveFriends() {
+  try { localStorage.setItem('ba_friends', JSON.stringify(_friends)); } catch(e){}
+}
+
+function _addFriendFromSearch(btn) {
+  // Store player data on window temporarily to avoid attribute escaping
+  if(window._searchResult) {
+    var p = window._searchResult;
+    addFriend(p.uid, p.playerName||'Player', p.avatarStyle||'bottts', p.wins||0, p.coins||0);
+  }
+}
+
+function searchFriend() {
+  var input = document.getElementById('friendSearchInput');
+  var resultEl = document.getElementById('friendSearchResult');
+  if(!input || !resultEl) return;
+  var code = input.value.trim().toUpperCase();
+  if(!code || code.length < 6) { toast('Enter a valid code like BA-1234'); return; }
+  resultEl.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text3);font-size:12px">Searching...</div>';
+  if(typeof BA_Firebase === 'undefined' || !BA_Firebase.getUid()) {
+    resultEl.innerHTML = '<div style="text-align:center;padding:16px;color:var(--red);font-size:12px">Not connected to server</div>';
+    return;
+  }
+  BA_Firebase.lookupByCode(code, function(player) {
+    if(!player) {
+      resultEl.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text3);font-size:12px">No player found with that code</div>';
+      return;
+    }
+    var myUid = BA_Firebase.getUid();
+    if(player.uid === myUid) {
+      resultEl.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text3);font-size:12px">That&#39;s you!</div>';
+      return;
+    }
+    window._searchResult = player;
+    var alreadyFriend = !!_friends[player.uid];
+    var av = 'https://api.dicebear.com/9.x/'+(player.avatarStyle||'bottts')+'/svg?seed='+encodeURIComponent(player.playerName||'?');
+    resultEl.innerHTML = '<div class="friend-card">'
+      +'<img src="'+av+'" alt="">'
+      +'<div class="fc-info">'
+        +'<div class="fc-name">'+escHtml(player.playerName||'Player')+'</div>'
+        +'<div class="fc-stats">'+( player.wins||0)+' wins &nbsp;·&nbsp; '+(player.coins||0).toLocaleString()+' coins</div>'
+      +'</div>'
+      +(alreadyFriend
+        ? '<button class="fc-btn fc-remove" data-uid="player.uid" onclick="removeFriend(this.dataset.uid)">Remove</button>'
+        : '<button class="fc-btn fc-add" data-uid="'+player.uid+'" onclick="_addFriendFromSearch(this)">Add Friend</button>'
+      )
+      +'</div>';
+  });
+}
+
+function addFriend(uid, name, av, wins, coins) {
+  _friends[uid] = { uid:uid, playerName:name, avatarStyle:av, wins:wins, coins:coins, ts:Date.now() };
+  _saveFriends();
+  renderFriendsList();
+  // Refresh the search result to show "Remove" button
+  var input = document.getElementById('friendSearchInput');
+  if(input && input.value.trim()) searchFriend();
+  toast('Friend added!');
+}
+
+function removeFriend(uid) {
+  delete _friends[uid];
+  _saveFriends();
+  renderFriendsList();
+  var input = document.getElementById('friendSearchInput');
+  if(input && input.value.trim()) searchFriend();
+  toast('Friend removed');
+}
+
+function renderFriendsList() {
+  var el = document.getElementById('friendsList');
+  var countEl = document.getElementById('friendCount');
+  if(!el) return;
+  var list = Object.values(_friends);
+  if(countEl) countEl.textContent = list.length ? '('+list.length+')' : '';
+  if(!list.length) {
+    el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text3);font-size:12px;font-weight:700">Search a player code to add friends</div>';
+    return;
+  }
+  // Sort by wins desc, then refresh stats from server
+  list.sort(function(a,b){ return (b.wins||0)-(a.wins||0); });
+  el.innerHTML = list.map(function(p) {
+    var av = 'https://api.dicebear.com/9.x/'+(p.avatarStyle||'bottts')+'/svg?seed='+encodeURIComponent(p.playerName||'?');
+    return '<div class="friend-card">'
+      +'<img src="'+av+'" alt="">'
+      +'<div class="fc-info">'
+        +'<div class="fc-name">'+escHtml(p.playerName||'Player')+'</div>'
+        +'<div class="fc-stats">'+(p.wins||0)+' wins &nbsp;·&nbsp; '+(p.coins||0).toLocaleString()+' coins</div>'
+      +'</div>'
+      +'<button class="fc-btn fc-remove" data-uid="p.uid" onclick="removeFriend(this.dataset.uid)">Remove</button>'
+      +'</div>';
+  }).join('');
+
+  // Refresh friend stats from server in background
+  if(typeof BA_Firebase !== 'undefined') {
+    list.forEach(function(p) {
+      BA_Firebase.lookupByUid(p.uid, function(fresh) {
+        if(fresh) {
+          _friends[p.uid] = Object.assign(_friends[p.uid], fresh);
+          _saveFriends();
+        }
+      });
+    });
+    // Re-render after refresh
+    setTimeout(renderFriendsList, 2000);
+  }
 }
 
 function updateDailyChallenge() {
@@ -9567,6 +9715,7 @@ updateUI = function() {
   renderAvatarGrid();
   renderShopAvatarGrid();
   updateShopNameLabel();
+  renderFriendsList();
   var _sinceEl = document.getElementById('profSince');
   if(_sinceEl) _sinceEl.textContent = 'Member since ' + (localStorage.getItem('ba_joindate') || new Date().getFullYear());
   var fc = document.getElementById('friendCode');
@@ -10237,6 +10386,69 @@ var BA_Firebase = (function() {
     });
   }
 
+  // ── LOOKUP PLAYER BY FRIEND CODE ───────────────────────────────
+  function lookupByCode(code, cb) {
+    if(!_uid) { cb(null); return; }
+    _getToken(function(token) {
+      if(!token) { cb(null); return; }
+      // Query players collection where friendCode == code
+      var url = "https://firestore.googleapis.com/v1/projects/board-arena-6df87/databases/(default)/documents:runQuery";
+      var query = {
+        structuredQuery: {
+          from: [{collectionId:'players'}],
+          where: {
+            fieldFilter: {
+              field: {fieldPath:'friendCode'},
+              op: 'EQUAL',
+              value: {stringValue: code}
+            }
+          },
+          limit: 1
+        }
+      };
+      fetch(url, {
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+        body: JSON.stringify(query)
+      })
+      .then(function(r){ return r.json(); })
+      .then(function(results) {
+        if(Array.isArray(results) && results[0] && results[0].document) {
+          var d = _fromFS(results[0].document);
+          // Extract uid from document name path
+          var name = results[0].document.name || '';
+          d.uid = name.split('/').pop();
+          cb(d);
+        } else {
+          cb(null);
+        }
+      })
+      .catch(function(e){ console.warn('[Firebase] Lookup error:', e); cb(null); });
+    });
+  }
+
+  // ── LOOKUP PLAYER BY UID ────────────────────────────────────────
+  function lookupByUid(uid, cb) {
+    if(!_uid || !uid) { cb(null); return; }
+    _getToken(function(token) {
+      if(!token) { cb(null); return; }
+      fetch(FS_URL + uid, {
+        headers:{'Authorization':'Bearer '+token}
+      })
+      .then(function(r){ return r.json(); })
+      .then(function(d) {
+        if(d.fields) {
+          var data = _fromFS(d);
+          data.uid = uid;
+          cb(data);
+        } else {
+          cb(null);
+        }
+      })
+      .catch(function(e){ cb(null); });
+    });
+  }
+
   return {
     init:              init,
     save:              cloudSave,
@@ -10244,7 +10456,9 @@ var BA_Firebase = (function() {
     getUid:            function(){ return _uid; },
     isReady:           function(){ return _ready; },
     updateLeaderboard: updateLeaderboard,
-    fetchLeaderboard:  fetchLeaderboard
+    fetchLeaderboard:  fetchLeaderboard,
+    lookupByCode:      lookupByCode,
+    lookupByUid:       lookupByUid
   };
 
 })();
@@ -10252,6 +10466,7 @@ var BA_Firebase = (function() {
 // Init on load
 document.addEventListener('DOMContentLoaded', function() {
   loadData();
+  _loadFriends();
   updateUI();
   BA_Firebase.init();
 });
