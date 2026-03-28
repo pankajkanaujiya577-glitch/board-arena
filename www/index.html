@@ -1030,19 +1030,16 @@ html,body{
       <div style="text-align:center;padding:32px;color:var(--text3);font-size:13px;font-weight:700">Loading leaderboard...</div>
     </div>
 
-    <div class="shop-section-title">Daily Challenge</div>
-    <div class="card" style="background:linear-gradient(135deg,#f0f7ff,#e0efff);border-color:rgba(74,158,255,.2)">
-      <div style="display:flex;align-items:center;gap:12px">
-        <div style="font-size:32px">&#9678;</div>
-        <div style="flex:1">
-          <div style="font-size:14px;font-weight:800;color:var(--text)">Win 5 games today</div>
-          <div style="font-size:11px;color:var(--text3);font-weight:600;margin-top:2px">Reward: <svg width="12" height="12" viewBox="0 0 24 24" style="display:inline-block;vertical-align:middle"><circle cx="12" cy="12" r="10" fill="#f59e0b"/><circle cx="12" cy="12" r="7" fill="#fbbf24"/><text x="12" y="16" font-size="11" text-anchor="middle" fill="#92400e" font-weight="bold">$</text></svg> 500 coins</div>
-        </div>
-        <div id="dailyProgress" style="font-size:12px;font-weight:800;color:var(--blue-deep)">0/5</div>
-      </div>
-      <div class="level-bar-bg" style="margin-top:10px">
-        <div class="level-bar-fill" id="dailyBar" style="width:0%"></div>
-      </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div class="shop-section-title" style="margin:0">Daily Challenge</div>
+      <div id="dailyCountdown" style="font-size:10px;font-weight:800;color:var(--text3)">Resets in --:--:--</div>
+    </div>
+    <div id="dailyChallengeCard" class="card" style="background:linear-gradient(135deg,#f0f7ff,#e0efff);border-color:rgba(74,158,255,.2)">
+      <div style="text-align:center;padding:16px;color:var(--text3);font-size:12px">Loading challenge...</div>
+    </div>
+    <div id="dailyTopSection" style="display:none;margin-top:12px">
+      <div class="shop-section-title" style="font-size:11px;margin-bottom:6px">Today&#39;s Top Players</div>
+      <div id="dailyTopList"></div>
     </div>
 
   </div>
@@ -1573,8 +1570,10 @@ function SS(id) {
 function navTo(name, el) {
   if(name==='friends') {
     _lbCacheTime=0;
+    _dcLoaded=false; // force refresh daily challenge
     setTimeout(updateLeaderboard,300);
     setTimeout(renderFriendsList,500);
+    setTimeout(updateDailyChallenge,600);
   }
   SS('scr-' + name);
   // Update nav active states on all navs
@@ -2506,6 +2505,8 @@ function gameWin(pts) {
   if(_gameEnded) return;
   _gameEnded = true;
   wins++; played++;
+  // Track daily challenge progress
+  if(currentGame) _trackDailyProgress(currentGame);
   // Update leaderboard in cloud on every win
   setTimeout(function(){ if(typeof BA_Firebase!=='undefined') BA_Firebase.updateLeaderboard(); }, 2000);
   var earned = awardCoins(pts || 10);
@@ -9435,16 +9436,159 @@ function renderFriendsList() {
   }
 }
 
+// ── Daily Challenge State ───────────────────────────────────────────
+var _dcToday   = null;   // current challenge object
+var _dcLoaded  = false;  // whether we fetched from server
+var _dcSubmitted = false; // whether we submitted today's score
+
+// ── Generate deterministic challenge from date seed ─────────────────
+function _generateChallenge(dateStr) {
+  // Seed a simple RNG from the date string
+  var seed = 0;
+  for(var i=0;i<dateStr.length;i++) seed = ((seed<<5)-seed)+dateStr.charCodeAt(i);
+  seed = Math.abs(seed);
+
+  var challenges = [
+    { game:'snake',        title:'Snake Marathon',      desc:'Score 50+ in Snake',          target:50,  metric:'score', reward:300  },
+    { game:'tetris',       title:'Tetris Master',       desc:'Clear 5+ lines in Tetris',     target:5,   metric:'lines', reward:300  },
+    { game:'wordle',       title:'Word Wizard',         desc:'Solve 3 Wordles in a row',     target:3,   metric:'wins',  reward:400  },
+    { game:'minesweeper',  title:'Minesweeper Pro',     desc:'Clear the board twice',        target:2,   metric:'wins',  reward:350  },
+    { game:'chess',        title:'Chess Champion',      desc:'Beat the CPU 2 times',         target:2,   metric:'wins',  reward:400  },
+    { game:'pacman',       title:'Pac-Man Fever',       desc:'Eat 80+ dots in Pac-Man',      target:80,  metric:'score', reward:300  },
+    { game:'memory',       title:'Memory King',         desc:'Win 3 Memory Match games',     target:3,   metric:'wins',  reward:350  },
+    { game:'sudoku',       title:'Sudoku Sprint',       desc:'Solve a Sudoku',               target:1,   metric:'wins',  reward:300  },
+    { game:'ttt',          title:'Tic-Tac-Titan',       desc:'Win 5 Tic-Tac-Toe games',     target:5,   metric:'wins',  reward:250  },
+    { game:'mathblaster',  title:'Math Blaster',        desc:'Score 80+ in Math Blaster',    target:80,  metric:'score', reward:350  },
+    { game:'flappy',       title:'Flappy Legend',       desc:'Pass 10 pipes in Flappy Bird', target:10,  metric:'score', reward:400  },
+    { game:'trivia',       title:'Trivia Genius',       desc:'Get 8/10 in Trivia',           target:8,   metric:'score', reward:350  },
+    { game:'simon',        title:'Simon Savant',        desc:'Reach level 10 in Simon Says', target:10,  metric:'level', reward:400  },
+    { game:'g2048',        title:'2048 Blitz',          desc:'Reach 1024 tile in 2048',      target:1024,metric:'tile',  reward:500  },
+    { game:'breakout',     title:'Breakout Ace',        desc:'Clear the board in Breakout',  target:1,   metric:'wins',  reward:300  },
+  ];
+
+  var idx = seed % challenges.length;
+  return Object.assign({}, challenges[idx], { date:dateStr });
+}
+
+// ── Countdown timer ──────────────────────────────────────────────────
+function _startCountdown() {
+  function _tick() {
+    var el = document.getElementById('dailyCountdown');
+    if(!el) return;
+    var now = new Date();
+    var midnight = new Date(now);
+    midnight.setHours(24,0,0,0);
+    var diff = midnight - now;
+    var h = Math.floor(diff/3600000);
+    var m = Math.floor((diff%3600000)/60000);
+    var s = Math.floor((diff%60000)/1000);
+    el.textContent = 'Resets in '+String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  }
+  _tick();
+  setInterval(_tick, 1000);
+}
+
+// ── Render challenge card ────────────────────────────────────────────
+function _renderDailyCard(challenge, progress, claimed) {
+  var card = document.getElementById('dailyChallengeCard');
+  if(!card || !challenge) return;
+  var target  = challenge.target || 5;
+  var prog    = Math.min(progress, target);
+  var pct     = Math.round(prog/target*100);
+  var done    = claimed || prog>=target;
+  var COIN    = '<svg width="12" height="12" viewBox="0 0 24 24" style="display:inline-block;vertical-align:middle"><circle cx="12" cy="12" r="10" fill="#f59e0b"/><circle cx="12" cy="12" r="7" fill="#fbbf24"/><text x="12" y="16" font-size="11" text-anchor="middle" fill="#92400e" font-weight="bold">$</text></svg>';
+  card.className = 'card' + (done?' dc-done':'');
+  card.style.background = done ? '' : 'linear-gradient(135deg,#f0f7ff,#e0efff)';
+  card.style.borderColor = done ? '' : 'rgba(74,158,255,.2)';
+  card.innerHTML = '<div class="dc-card">'
+    +'<div class="dc-icon">'+(done?'&#127942;':'&#9678;')+'</div>'
+    +'<div class="dc-body">'
+      +'<div class="dc-title">'+escHtml(challenge.title||'Daily Challenge')+'</div>'
+      +'<div class="dc-desc">'+escHtml(challenge.desc||'Complete the challenge')+'</div>'
+      +'<div class="dc-reward">Reward: '+COIN+' '+(challenge.reward||500)+' coins'+(done?' &#10003; Claimed!':'')+'</div>'
+    +'</div>'
+    +'<div class="dc-progress">'+prog+'/'+target+'</div>'
+    +'</div>'
+    +'<div class="dc-bar"><div class="level-bar-bg"><div class="level-bar-fill" id="dailyBar" style="width:'+pct+'%"></div></div></div>'
+    +(done?'':'<button class="btn btn-purple" data-game="'+challenge.game+'" onclick="openGame(this.dataset.game)" style="width:100%;margin-top:10px;font-size:12px">Play '+escHtml(challenge.title||'Challenge')+'</button>');
+}
+
+// ── Load top players for today ───────────────────────────────────────
+function _loadDailyTop(dateStr) {
+  if(typeof BA_Firebase === 'undefined' || !BA_Firebase.getUid()) return;
+  BA_Firebase.fetchDailyTop(dateStr, function(scores) {
+    var topSec = document.getElementById('dailyTopSection');
+    var topList = document.getElementById('dailyTopList');
+    if(!topSec || !topList || !scores.length) return;
+    topSec.style.display = 'block';
+    var myUid = BA_Firebase.getUid();
+    var html = scores.slice(0,5).map(function(s,i) {
+      var isMe = s.uid === myUid;
+      var medals = ['&#127941;','&#129352;','&#129353;'];
+      return '<div class="dc-top-row">'
+        +'<div style="font-size:13px;min-width:24px">'+(medals[i]||String(i+1))+'</div>'
+        +'<div style="flex:1;font-size:12px;font-weight:800;color:var(--text)">'+(isMe?'<b>':'')+escHtml(s.playerName||'Player')+(isMe?'</b>':'')+'</div>'
+        +'<div style="font-size:11px;color:var(--text3);font-weight:700">'+s.score+' pts</div>'
+        +'</div>';
+    }).join('');
+    topList.innerHTML = html;
+  });
+}
+
+// ── Main update function ─────────────────────────────────────────────
 function updateDailyChallenge() {
-  var pct = Math.min(100, (dailyWins/5)*100);
-  var bar = document.getElementById('dailyBar');
-  var prog = document.getElementById('dailyProgress');
-  if(bar) bar.style.width = pct+'%';
-  if(prog) prog.textContent = Math.min(dailyWins,5)+'/5';
-  var _todayKey = 'ba_daily_'+new Date().toISOString().slice(0,10);
-  if(dailyWins>=5 && !dailyClaimed && !localStorage.getItem(_todayKey)) {
-    dailyClaimed=true; localStorage.setItem(_todayKey,'1'); coins+=500; saveData(); updateUI();
-    toast('Daily challenge complete! +500 coins!');
+  var today = new Date().toISOString().slice(0,10);
+  var challenge = _dcToday || _generateChallenge(today);
+  _dcToday = challenge;
+
+  // Check local progress
+  var progressKey = 'ba_dcprog_'+today;
+  var progress = parseInt(localStorage.getItem(progressKey)||'0');
+  var claimedKey = 'ba_daily_'+today;
+  var claimed = !!localStorage.getItem(claimedKey);
+
+  // Auto-claim if complete
+  if(progress >= challenge.target && !claimed && !_dcSubmitted) {
+    claimed = true;
+    _dcSubmitted = true;
+    localStorage.setItem(claimedKey, '1');
+    coins += (challenge.reward||500);
+    saveData(); updateUI();
+    toast('Daily challenge complete! +'+( challenge.reward||500)+' coins!');
+    // Submit score to server
+    if(typeof BA_Firebase !== 'undefined') {
+      BA_Firebase.submitDailyScore(today, progress, challenge.reward||500);
+    }
+  }
+
+  _renderDailyCard(challenge, progress, claimed);
+
+  // Load from server (once per session)
+  if(!_dcLoaded && typeof BA_Firebase !== 'undefined' && BA_Firebase.getUid()) {
+    _dcLoaded = true;
+    BA_Firebase.fetchDailyChallenge(today, function(serverChallenge) {
+      if(serverChallenge) {
+        _dcToday = serverChallenge;
+        _renderDailyCard(serverChallenge, progress, claimed);
+      }
+      _loadDailyTop(today);
+    });
+  }
+}
+
+// ── Track game wins toward daily challenge ───────────────────────────
+function _trackDailyProgress(gameId) {
+  if(!_dcToday) return;
+  var today = new Date().toISOString().slice(0,10);
+  var claimedKey = 'ba_daily_'+today;
+  if(localStorage.getItem(claimedKey)) return; // already done
+  var challenge = _dcToday;
+  // Only count if it matches the challenge game or metric is 'wins' (any game)
+  if(challenge.metric === 'wins' && (challenge.game === gameId || challenge.game === 'any')) {
+    var progressKey = 'ba_dcprog_'+today;
+    var prog = parseInt(localStorage.getItem(progressKey)||'0') + 1;
+    localStorage.setItem(progressKey, prog);
+    updateDailyChallenge();
   }
 }
 
@@ -10449,16 +10593,91 @@ var BA_Firebase = (function() {
     });
   }
 
+  // ── FETCH TODAY'S CHALLENGE FROM FIRESTORE ─────────────────────
+  function fetchDailyChallenge(dateStr, cb) {
+    if(!_uid) { cb(null); return; }
+    _getToken(function(token) {
+      if(!token) { cb(null); return; }
+      var url = "https://firestore.googleapis.com/v1/projects/board-arena-6df87/databases/(default)/documents/daily/" + dateStr;
+      fetch(url, { headers:{'Authorization':'Bearer '+token} })
+      .then(function(r){ return r.json(); })
+      .then(function(d) {
+        if(d.fields) { cb(_fromFS(d)); }
+        else { cb(null); } // No challenge today — use client-generated one
+      })
+      .catch(function(){ cb(null); });
+    });
+  }
+
+  // ── SUBMIT DAILY SCORE ───────────────────────────────────────────
+  function submitDailyScore(dateStr, score, reward) {
+    if(!_uid) return;
+    _getToken(function(token) {
+      if(!token) return;
+      var url = "https://firestore.googleapis.com/v1/projects/board-arena-6df87/databases/(default)/documents/daily_scores/" + dateStr + "_" + _uid;
+      var data = {
+        uid: _uid,
+        playerName: playerName,
+        avatarStyle: avatarStyle,
+        score: score,
+        reward: reward,
+        date: dateStr,
+        ts: Date.now()
+      };
+      fetch(url, {
+        method:'PATCH',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+        body: JSON.stringify(_toFS(data))
+      }).catch(function(e){ console.warn('[Firebase] Daily score submit error:', e); });
+    });
+  }
+
+  // ── FETCH TOP DAILY SCORES ───────────────────────────────────────
+  function fetchDailyTop(dateStr, cb) {
+    if(!_uid) { cb([]); return; }
+    _getToken(function(token) {
+      if(!token) { cb([]); return; }
+      var url = "https://firestore.googleapis.com/v1/projects/board-arena-6df87/databases/(default)/documents:runQuery";
+      var query = {
+        structuredQuery: {
+          from: [{collectionId:'daily_scores'}],
+          where: { fieldFilter: { field:{fieldPath:'date'}, op:'EQUAL', value:{stringValue:dateStr} } },
+          orderBy: [{field:{fieldPath:'score'}, direction:'DESCENDING'}],
+          limit: 5
+        }
+      };
+      fetch(url, {
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+        body: JSON.stringify(query)
+      })
+      .then(function(r){ return r.json(); })
+      .then(function(results) {
+        var scores = [];
+        if(Array.isArray(results)) {
+          results.forEach(function(r) {
+            if(r.document && r.document.fields) scores.push(_fromFS(r.document));
+          });
+        }
+        cb(scores);
+      })
+      .catch(function(){ cb([]); });
+    });
+  }
+
   return {
-    init:              init,
-    save:              cloudSave,
-    load:              cloudLoad,
-    getUid:            function(){ return _uid; },
-    isReady:           function(){ return _ready; },
-    updateLeaderboard: updateLeaderboard,
-    fetchLeaderboard:  fetchLeaderboard,
-    lookupByCode:      lookupByCode,
-    lookupByUid:       lookupByUid
+    init:                init,
+    save:                cloudSave,
+    load:                cloudLoad,
+    getUid:              function(){ return _uid; },
+    isReady:             function(){ return _ready; },
+    updateLeaderboard:   updateLeaderboard,
+    fetchLeaderboard:    fetchLeaderboard,
+    lookupByCode:        lookupByCode,
+    lookupByUid:         lookupByUid,
+    fetchDailyChallenge: fetchDailyChallenge,
+    submitDailyScore:    submitDailyScore,
+    fetchDailyTop:       fetchDailyTop
   };
 
 })();
@@ -10468,6 +10687,7 @@ document.addEventListener('DOMContentLoaded', function() {
   loadData();
   _loadFriends();
   updateUI();
+  _startCountdown();
   BA_Firebase.init();
 });
 
